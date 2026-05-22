@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head><title>User Profile</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+input, button { margin: 5px; padding: 8px; }
+button { background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>User Profile</h1>
+<input type="text" id="name" placeholder="Name"><br>
+<input type="email" id="email" placeholder="Email"><br>
+<input type="number" id="age" placeholder="Age"><br>
+<button onclick="load()">Load Profile</button>
+<button onclick="save()">Save Profile</button>
+<pre id="result"></pre>
+<script>
+async function load() {
+  const res = await fetch('/get-profile');
+  const data = await res.json();
+  document.getElementById('name').value = data.name || '';
+  document.getElementById('email').value = data.email || '';
+  document.getElementById('age').value = data.age || '';
+  document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+}
+async function save() {
+  const data = {
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    age: parseInt(document.getElementById('age').value)
+  };
+  const res = await fetch('/update-profile', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+  const result = await res.json();
+  document.getElementById('result').innerText = JSON.stringify(result, null, 2);
+  load();
+}
+load();
+</script>
+</body>
+</html>
