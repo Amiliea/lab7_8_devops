@@ -1,0 +1,30 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, minikube]
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Start Minikube
+      run: |
+        minikube start --driver=docker
+        minikube update-context
+
+    - name: Apply Kubernetes manifests
+      run: |
+        kubectl apply -f k8s/
+        kubectl wait --for=condition=available --timeout=180s deployment/app-deployment
+        kubectl wait --for=condition=available --timeout=180s deployment/mongodb-deployment
+
+    - name: Rollout status
+      run: kubectl rollout status deployment/app-deployment
+
+    - name: Auto-rollback on failure
+      if: failure()
+      run: kubectl rollout undo deployment/app-deployment
